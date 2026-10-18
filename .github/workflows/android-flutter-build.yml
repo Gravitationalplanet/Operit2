@@ -169,6 +169,22 @@ jobs:
           $py = Join-Path (Get-Location) ".venv/Scripts/python.exe"
           if (-not (Test-Path $py)) { throw "Project venv python.exe was not created at $py" }
           & $py --version
+      - name: Install TypeScript compiler for plugin packaging
+        shell: pwsh
+        run: |
+          npm install --prefix .ci-tools/typescript --no-audit --no-fund typescript@5.9.3
+          $tsc = Join-Path (Get-Location) ".ci-tools/typescript/node_modules/.bin/tsc.cmd"
+          if (-not (Test-Path $tsc)) { throw "TypeScript compiler was not installed at $tsc" }
+          & $tsc --version
+      - name: Install workflow plugin pnpm dependencies
+        shell: pwsh
+        run: |
+          Push-Location plugins/packages/buildin/workflow
+          try {
+            corepack pnpm install --frozen-lockfile
+          } finally {
+            Pop-Location
+          }
       - name: Check build environment
         shell: pwsh
         run: python tools/build_scripts/check_build_environment.py --products app --github-runner
